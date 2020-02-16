@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 
 # Crontab:
-# 0 * * * * sudo python3 /home/pi/thingspeak.py
-# @reboot sudo python3 /home/pi/thingspeak.py
+# 0 * * * * sudo python3 /home/system/scripts/thingspeak.py
+# @reboot sudo python3 /home/system/scripts/thingspeak.py
+
 
 import socket
 import json
@@ -11,7 +12,7 @@ import requests
 import os
 import logging
 
-key = "SYU4LXQT0TBKOD3A"
+key = "SYU4LXQRY6BKOD3A"
 
 #Create and configure logger
 logging.basicConfig(filename="/var/log/thingspeak_stats.log", format='%(asctime)s %(message)s', filemode='a')
