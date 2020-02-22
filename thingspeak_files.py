@@ -8,10 +8,10 @@ import socket
 import json
 from time import strftime,localtime,sleep
 import requests
-import os
+import os, sys
 import logging
 
-key = "SYU4LXQT6YBKOD1A"
+key = "SYU4LXQT3RHKOD3A"
 
 #Create and configure logger
 logging.basicConfig(filename="/var/log/thingspeak_stats.log", format='%(asctime)s %(message)s', filemode='a')
@@ -64,20 +64,25 @@ size_others = size_total - (size_data + size_drive)
 # Compare function
 def changes():
     # Read existing data
-    r = open('data.ini','r')
-    data = r.read()
-    r.close()
-    # Write new data
-    data2 = [count_total,count_data,count_others,count_drive,size_total,size_data,size_others,size_drive]
-    f = open('data.ini','w')
-    f.write(str(data2))
-    f.close()
-    # Compare
-    if data == str(data2):
-        return True
-    else:
-        return False
-
+    try:
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        file_data = os.path.join(dir_path, "data.ini")
+        r = open(file_data,'r')
+        data = r.read()
+        r.close()
+        # Write new data
+        data2 = [count_total,count_data,count_others,count_drive,size_total,size_data,size_others,size_drive]
+        f = open(file_data,'w')
+        f.write(str(data2))
+        f.close()
+        # Compare
+        if data == str(data2):
+            return True
+        else:
+            return False
+    except FileNotFoundError:
+        logger.info("data.ini file not found error")
+        sys.exit()
 
 # Log data to /var/log/thingspeak_stats.log
 ctime = strftime("%Y-%m-%d %H:%M:%S +0530", localtime())
