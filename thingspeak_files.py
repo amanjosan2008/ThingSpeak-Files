@@ -11,7 +11,7 @@ import requests
 import os, sys
 import logging
 
-key = "SYU4LXQT3RHKOD3A"
+key = "SYU4LXQR5TBKOD3A"
 
 #Create and configure logger
 logging.basicConfig(filename="/var/log/thingspeak_stats.log", format='%(asctime)s %(message)s', filemode='a')
@@ -52,14 +52,14 @@ count_total = len(file_list)
 count_data = len(data_list)
 count_others = len(other_list)
 count_drive = len(drive_list)
-#prob = data + others
+count_prob = count_data + count_others
 
 # Calculate Sizes
 size_total = int(os.popen('du -sh /data/.folder/').read().split()[0].strip('G'))
 size_data = int(os.popen('du -sh /data/.folder/DATA').read().split()[0].strip('G'))
 size_drive = int(os.popen('du -sh /data/.folder/Drive').read().split()[0].strip('G'))
 size_others = size_total - (size_data + size_drive)
-
+size_prob = size_data + size_others
 
 # Compare function
 def changes():
@@ -71,7 +71,7 @@ def changes():
         data = r.read()
         r.close()
         # Write new data
-        data2 = [count_total,count_data,count_others,count_drive,size_total,size_data,size_others,size_drive]
+        data2 = [count_total,count_data,count_others,count_drive,count_prob,size_total,size_data,size_others,size_drive,size_prob]
         f = open(file_data,'w')
         f.write(str(data2))
         f.close()
@@ -82,15 +82,19 @@ def changes():
             return False
     except FileNotFoundError:
         logger.info("data.ini file not found error")
-        sys.exit()
+        data2 = [count_total,count_data,count_others,count_drive,count_prob,size_total,size_data,size_others,size_drive,size_prob]
+        f = open(file_data,'w')
+        f.write(str(data2))
+        f.close()
+        return False
 
 # Log data to /var/log/thingspeak_stats.log
 ctime = strftime("%Y-%m-%d %H:%M:%S +0530", localtime())
-logger.info(str(("Data Fetched=",ctime, " total=",count_total, " data=",count_data, " others=",count_others, " drive=",count_drive, "total_size=",size_total, "data_size=",size_data, "others_size=",size_others, "drive_size=",size_drive)))
+logger.info(str(("Data Fetched=",ctime, " total=",count_total, " data=",count_data, " others=",count_others, " drive=",count_drive, "count_prob=",count_prob, "total_size=",size_total, "data_size=",size_data, "others_size=",size_others, "drive_size=",size_drive, "size_prob=",size_prob)))
 
 # Upload Data to Thingspeak
 def thing():
-    payload = {"write_api_key":key,"updates":[{"created_at":ctime,"field1":count_total,"field2":count_data,"field3":count_others,"field4":count_drive,"field5":size_total,"field6":size_data,"field7":size_others,"field8":size_drive}]}
+    payload = {"write_api_key":key,"updates":[{"created_at":ctime,"field1":count_prob,"field2":count_data,"field3":count_others,"field4":count_drive,"field5":size_prob,"field6":size_data,"field7":size_others,"field8":size_drive}]}
     url = 'https://api.thingspeak.com/channels/992766/bulk_update.json'
     headers = {'content-type': 'application/json'}
     response = requests.post(url, data=json.dumps(payload), headers=headers)
